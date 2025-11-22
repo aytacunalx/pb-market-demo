@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Point Blank | Black Market</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Russo+One&display=swap" rel="stylesheet">
+    <style>
+        /* --- CORE VISUALS --- */
+        :root { --primary: #ff5500; --dark-bg: #0b0b0b; --text-main: #ffffff; --card-bg: rgba(20, 20, 20, 0.90); }
+        
+        body { 
+            font-family: 'Inter', sans-serif; margin: 0; padding: 0; 
+            background-color: var(--dark-bg); color: var(--text-main); height: 100vh; overflow-x: hidden;
+            /* Cyber Grid Arka Plan */
+            background-image: 
+                radial-gradient(circle at 50% 20%, rgba(200, 0, 0, 0.2) 0%, transparent 60%),
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 100% 100%, 40px 40px, 40px 40px; background-attachment: fixed;
+        }
+
+        /* --- LOGIN --- */
+        #login-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); z-index: 2000; }
+        .login-card { width: 380px; padding: 40px; background: rgba(10, 10, 10, 0.95); border: 1px solid #333; border-radius: 12px; box-shadow: 0 30px 60px rgba(0,0,0,0.9); text-align: center; border-top: 4px solid var(--primary); }
+        .modern-input { width: 100%; padding: 12px; background: #151515; border: 1px solid #333; border-radius: 6px; color: #fff; margin-bottom: 15px; box-sizing: border-box; transition:0.3s; }
+        .modern-input:focus { border-color: var(--primary); outline:none; box-shadow: 0 0 15px rgba(255,85,0,0.2); }
+        .login-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #ff5500, #b33c00); color: white; border: none; border-radius: 6px; font-weight: 800; cursor: pointer; font-family: 'Russo One'; letter-spacing: 1px; }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255,85,0,0.4); }
+
+        /* --- PROFILE HEADER (Görseldeki Gibi) --- */
+        #app-screen { display: none; padding-bottom: 50px; }
+        .profile-header-container { 
+            background: linear-gradient(120deg, #500000 0%, #a00000 40%, #d00000 50%, #a00000 60%, #500000 100%);
+            width: 100%; border-bottom: 4px solid #111; box-shadow: 0 10px 30px rgba(0,0,0,0.6); position: relative; margin-bottom: 30px; 
+        }
+        .profile-content { max-width: 1100px; margin: 0 auto; padding: 30px 20px; display: flex; align-items: center; gap: 30px; position: relative; z-index: 2; }
+        
+        .rank-box { 
+            width: 90px; height: 90px; background: radial-gradient(circle, #500 0%, #200 100%);
+            border: 2px solid #ffd700; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); overflow: hidden;
+        }
+        .rank-img { width: 90%; height: 90%; object-fit: contain; filter: drop-shadow(0 4px 6px #000); }
+
+        .user-info-area { flex: 1; }
+        .user-title { font-family: 'Russo One'; font-size: 3rem; margin: 0; line-height: 1; text-transform: uppercase; text-shadow: 0 3px 10px rgba(0,0,0,0.6); letter-spacing: 1px; }
+        
+        .exp-container { width: 100%; max-width: 400px; height: 26px; background: rgba(0,0,0,0.6); border: 1px solid #555; margin: 10px 0; display: flex; position: relative; border-radius: 2px; }
+        .exp-fill { height: 100%; background: linear-gradient(90deg, #888, #ddd); width: 0%; transition: width 1s ease-out; }
+        .exp-text { position: absolute; width: 100%; text-align: center; font-size: 0.8rem; font-weight: bold; color: #fff; line-height: 26px; text-shadow: 0 1px 2px #000; z-index: 2; }
+        
+        .stats-row { display: flex; gap: 40px; margin-top: 10px; }
+        .stat-item span:first-child { font-size: 0.7rem; color: #ffcccc; font-weight: bold; letter-spacing: 0.5px; opacity: 0.8; }
+        .stat-item span:last-child { font-size: 1.4rem; font-weight: 700; font-family: 'Russo One'; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
+        .action-area { text-align: right; }
+        .tg-display { font-family: 'Russo One'; font-size: 2.5rem; color: #ffd700; text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+        .logout-btn { background: rgba(0,0,0,0.3); border: 1px solid #777; color: #ccc; padding: 6px 15px; cursor: pointer; font-size: 0.8rem; border-radius: 4px; margin-top: 5px; transition: 0.2s; }
+        .logout-btn:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.1); }
+
+        /* --- CONTENT --- */
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-btn { padding: 15px 30px; background: rgba(0,0,0,0.3); border: none; color: #888; font-family: 'Russo One'; cursor: pointer; border-bottom: 3px solid transparent; font-size: 1.1rem; transition: 0.2s; letter-spacing: 1px; }
+        .nav-btn:hover { color: #ccc; }
+        .nav-btn.active { background: rgba(255,85,0,0.1); color: var(--primary); border-bottom-color: var(--primary); }
+        #btn-admin { color: #ff4444; } #btn-admin.active { border-bottom-color: #ff4444; }
+
+        /* --- DETAYLI FİLTRE ÇUBUĞU --- */
+        .filter-bar { 
+            background: #151515; border: 1px solid #333; padding: 25px; border-radius: 12px; 
+            display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto; gap: 20px; 
+            align-items: end; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .filter-group label { display: block; font-size: 0.75rem; color: var(--primary); font-weight: bold; margin-bottom: 8px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .filter-input { background: #080808; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 6px; width: 100%; box-sizing: border-box; font-family: 'Inter'; font-size: 0.9rem; }
+        .filter-input:focus { border-color: var(--primary); }
+        .btn-filter { background: var(--primary); color: #fff; border: none; padding: 0 30px; height: 42px; border-radius: 6px; font-weight: bold; cursor: pointer; font-family: 'Russo One'; font-size: 1rem; transition: 0.2s; }
+        .btn-filter:hover { filter: brightness(1.2); transform: translateY(-2px); }
+
+        /* --- ITEM GRID --- */
+        .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .item-card { 
+            background: var(--card-bg); border: 1px solid #333; border-radius: 8px; padding: 15px; 
+            position: relative; transition: all 0.2s; overflow: hidden; backdrop-filter: blur(5px);
+        }
+        .item-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
+        .badge { 
+            position: absolute; top: 10px; right: 10px; font-size: 0.65rem; background: #000; 
+            padding: 4px 8px; border: 1px solid #444; color: #ccc; text-transform: uppercase; z-index: 5; border-radius: 4px; font-weight: bold;
+        }
+        
+        .item-visual { 
+            height: 110px; display: flex; align-items: center; justify-content: center; 
+            background: radial-gradient(closest-side, #333, transparent); margin-bottom: 12px; border-radius: 4px; padding: 5px;
+        }
+        .item-img-real { max-width: 100%; max-height: 100%; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.8)); transition: 0.2s; }
+        .item-card:hover .item-img-real { transform: scale(1.05); }
+        
+        .item-name { font-weight: 700; font-size: 1rem; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff; }
+        .item-info-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: #888; margin-bottom: 12px; }
+        .price-tag { color: #ffd700; font-weight: bold; font-family: 'Russo One'; letter-spacing: 0.5px; }
+
+        .btn-action { width: 100%; padding: 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-family: 'Russo One'; font-size: 0.85rem; transition: 0.2s; }
+        .btn-buy { background: #28a745; color: #fff; } 
+        .btn-buy:hover { background: #218838; box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3); }
+        .btn-sell { background: var(--primary); color: #fff; }
+        .btn-sell:hover { filter: brightness(1.1); box-shadow: 0 5px 15px rgba(255, 85, 0, 0.3); }
+        .btn-own { background: #222; color: #555; cursor: default; }
+
+        /* --- HISTORY TABLE --- */
+        .history-table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        .history-table th { text-align: left; color: #888; padding: 12px; border-bottom: 1px solid #444; font-size: 0.8rem; text-transform: uppercase; }
+        .history-table td { padding: 12px; border-bottom: 1px solid #222; }
+        .type-buy { color: #ff5555; font-weight: bold; }
+        .type-sell { color: #55ff55; font-weight: bold; }
+
+        /* --- ADMIN PANEL --- */
+        .admin-box { background: #111; border: 1px solid #333; padding: 20px; border-radius: 8px; max-height: 400px; overflow-y: auto; }
+        .admin-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #222; align-items: center; }
+        .btn-ban { background: #d00; color: #fff; border:none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.75rem; }
+
+        /* --- MODAL --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; display: none; justify-content: center; align-items: center; }
+        .modal-box { background: #151515; border: 2px solid var(--primary); padding: 30px; width: 450px; border-radius: 12px; text-align: center; box-shadow: 0 0 50px rgba(255,85,0,0.2); }
+        #toast { position: fixed; bottom: 30px; right: 30px; background: #111; border-left: 4px solid var(--primary); padding: 15px 30px; color: #fff; display: none; z-index: 4000; font-weight: bold; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+    </style>
+</head>
+<body>
+
+    <div id="login-wrapper">
+        <div class="login-card">
+            <h2 style="font-family:'Russo One'; color:#fff; font-size: 2rem; margin-top:0;">POINT<span style="color:var(--primary)">BLANK</span></h2>
+            <p style="color:#777; margin-bottom: 30px;">Black Market System</p>
+            <form onsubmit="event.preventDefault(); handleLogin();">
+                <input type="text" id="username" class="modern-input" value="OTTEO" placeholder="Kullanıcı Adı">
+                <input type="password" id="password" class="modern-input" value="123" placeholder="Şifre">
+                <button class="login-btn">SİSTEME GİRİŞ YAP</button>
+            </form>
+            <p style="font-size:0.75rem; color:#555; margin-top:20px;">Admin: GameMaster / admin</p>
+        </div>
+    </div>
+
+    <div id="app-screen">
+        <div class="profile-header-container">
+            <div class="profile-content">
+                <div class="rank-box">
+                    <img id="d-rank-img" src="" class="rank-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                </div>
+                <div class="user-info-area">
+                    <h1 class="user-title" id="d-username">---</h1>
+                    <div class="exp-container">
+                        <div class="exp-fill" id="d-exp-fill"></div>
+                        <div class="exp-text"><span id="d-exp">0</span> EXP</div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item"><span>RANK NAME</span><br><span id="d-rank-name">---</span></div>
+                        <div class="stat-item"><span>PLAY TIME</span><br><span id="d-playtime">---</span></div>
+                        <div class="stat-item"><span>K/D RATIO</span><br><span id="d-kd">---</span></div>
+                    </div>
+                </div>
+                <div class="action-area">
+                    <div class="tg-display"><span id="d-tg">0</span> TG</div>
+                    <button class="logout-btn" onclick="location.reload()">GÜVENLİ ÇIKIŞ</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="nav-tabs">
+                <button class="nav-btn active" onclick="switchTab('market')" id="btn-market">PAZAR YERİ</button>
+                <button class="nav-btn" onclick="switchTab('inventory')" id="btn-inventory">ENVANTERİM</button>
+                <button class="nav-btn" onclick="switchTab('history')" id="btn-history">GEÇMİŞİM</button>
+                <button class="nav-btn" onclick="switchTab('admin')" id="btn-admin" style="display:none;">YÖNETİM PANELİ</button>
+            </div>
+
+            <div id="view-market">
+                <div class="filter-bar">
+                    <div class="filter-group">
+                        <label>İSİM ARA</label>
+                        <input type="text" class="filter-input" id="f-search" placeholder="Örn: Cheytac, Aug...">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label>KATEGORİ</label>
+                        <select class="filter-input" id="f-cat">
+                            <option value="all">TÜM KATEGORİLER</option>
+                            <optgroup label="SİLAHLAR">
+                                <option value="assault_rifle">Assault Rifle</option>
+                                <option value="smg">SMG</option>
+                                <option value="sniper">Sniper</option>
+                                <option value="shotgun">Shotgun</option>
+                                <option value="machine_gun">Machine Gun</option>
+                                <option value="hand_gun">Hand Gun</option>
+                                <option value="melee_weapon">Bıçak / Melee</option>
+                                <option value="throwing_weapon_1">Bomba (Slot 1)</option>
+                                <option value="throwing_weapon_2">Bomba (Slot 2)</option>
+                                <option value="shield">Kalkan</option>
+                            </optgroup>
+                            <optgroup label="KARAKTER & GÖRÜNÜM">
+                                <option value="character">Karakter</option>
+                                <option value="head">Maske / Kafa</option>
+                                <option value="wig">Peruk</option>
+                                <option value="accessory">Aksesuar</option>
+                                <option value="name_card">İsim Kartı</option>
+                                <option value="spray">Sprey</option>
+                            </optgroup>
+                            <optgroup label="DİĞER">
+                                <option value="item">Eşya / Item</option>
+                                <option value="emote">Emote</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>SÜRE</label>
+                        <select class="filter-input" id="f-days">
+                            <option value="all">FARKETMEZ</option>
+                            <option value="1">1 Günlük</option>
+                            <option value="3">3 Günlük</option>
+                            <option value="7">7 Günlük</option>
+                            <option value="30">30 Günlük</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>MİN TG</label>
+                        <input type="number" class="filter-input" id="f-min" placeholder="0">
+                    </div>
+                    <div class="filter-group">
+                        <label>MAX TG</label>
+                        <input type="number" class="filter-input" id="f-max" placeholder="Max">
+                    </div>
+
+                    <button class="btn-filter" onclick="fetchMarket()">ARA</button>
+                </div>
+                <div id="market-grid" class="item-grid"></div>
+            </div>
+
+            <div id="view-inventory" style="display:none;">
+                <div id="inv-grid" class="item-grid"></div>
+            </div>
+
+            <div id="view-history" style="display:none;">
+                <div style="background:#151515; padding:25px; border-radius:12px; border:1px solid #333;">
+                    <h3 style="margin-top:0; color:#fff; font-family:'Russo One'; border-bottom:1px solid #333; padding-bottom:15px;">İŞLEM KAYITLARI</h3>
+                    <table class="history-table">
+                        <thead><tr><th>TARİH</th><th>İŞLEM TÜRÜ</th><th>ÜRÜN ADI</th><th>TUTAR</th></tr></thead>
+                        <tbody id="history-list"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-admin" style="display:none;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:30px;">
+                    <div class="admin-box">
+                        <h3 style="color:#fff; margin-top:0; font-family:'Russo One';">KULLANICI LİSTESİ</h3>
+                        <div id="admin-user-list"></div>
+                    </div>
+                    <div class="admin-box">
+                        <h3 style="color:#fff; margin-top:0; font-family:'Russo One';">LOG AKIŞI</h3>
+                        <div id="admin-log-list" style="font-family:monospace; font-size:0.8rem; color:#0f0;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sell-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 style="color:var(--primary); font-family:'Russo One'; margin-top:0;">SATIŞ EMRİ</h2>
+            <p id="m-name" style="font-weight:bold; color:#fff; font-size:1.2rem; margin-bottom:30px;">---</p>
+            <input type="number" id="m-price" class="modern-input" style="text-align:center; font-size:1.5rem; font-weight:bold; color:var(--primary);" placeholder="Fiyat (TG)">
+            <div style="display:flex; gap:15px; margin-top:20px;">
+                <button onclick="document.getElementById('sell-modal').style.display='none'" style="flex:1; padding:12px; background:#333; color:#ccc; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">İPTAL</button>
+                <button onclick="submitSell()" style="flex:1; padding:12px; background:var(--primary); color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">ONAYLA</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">Bildirim Mesajı</div>
+
+    <script>
+        const API = 'http://localhost:3000';
+        let user = null, selId = null;
+
+        async function handleLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            try {
+                const res = await fetch(API + '/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:u, password:p}) });
+                if(res.ok) {
+                    user = await res.json();
+                    document.getElementById('login-wrapper').style.display='none';
+                    document.getElementById('app-screen').style.display='block';
+                    initUI();
+                } else toast('Hatalı Giriş');
+            } catch(e) { toast('Sunucu Hatası'); }
+        }
+
+        function initUI() {
+            document.getElementById('d-username').innerText = user.username;
+            document.getElementById('d-tg').innerText = new Intl.NumberFormat('tr-TR').format(user.tg);
+            document.getElementById('d-exp').innerText = user.exp;
+            document.getElementById('d-rank-name').innerText = user.rank;
+            document.getElementById('d-playtime').innerText = user.stats.playTime;
+            document.getElementById('d-kd').innerText = user.stats.kd;
+            document.getElementById('d-rank-img').src = `/assets/ranks/${user.rankLevel}.png`;
+            setTimeout(() => { document.getElementById('d-exp-fill').style.width = user.expPercent + '%'; }, 500);
+
+            if(user.role === 'admin') document.getElementById('btn-admin').style.display = 'block';
+
+            fetchMarket(); fetchInv();
+        }
+
+        function switchTab(t) {
+            ['market','inventory','history','admin'].forEach(x => {
+                document.getElementById('view-'+x).style.display = 'none';
+                document.getElementById('btn-'+x).classList.remove('active');
+            });
+            document.getElementById('view-'+t).style.display = 'block';
+            document.getElementById('btn-'+t).classList.add('active');
+            
+            if(t === 'history') fetchHistory();
+            if(t === 'admin') fetchAdminData();
+        }
+
+        async function fetchMarket() {
+            const q = new URLSearchParams({
+                search: document.getElementById('f-search').value,
+                category: document.getElementById('f-cat').value,
+                days: document.getElementById('f-days').value,
+                minPrice: document.getElementById('f-min').value,
+                maxPrice: document.getElementById('f-max').value
+            });
+            const res = await fetch(API + '/market?' + q);
+            const data = await res.json();
+            const el = document.getElementById('market-grid');
+            el.innerHTML = '';
+            
+            if(!data.length) el.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#666;">Aradığınız kriterde ürün yok.</div>';
+
+            data.forEach(i => {
+                const mine = i.sellerId === user.id;
+                const img = i.img ? `/assets/items/${i.img}` : 'https://cdn-icons-png.flaticon.com/512/992/992693.png';
+                el.innerHTML += `
+                <div class="item-card">
+                    <span class="badge">${i.type.toUpperCase().replace('_',' ')}</span>
+                    <div class="item-visual"><img src="${img}" class="item-img-real" onerror="this.style.display='none'"></div>
+                    <div class="item-name" title="${i.itemName}">${i.itemName}</div>
+                    <div class="item-info-row"><span>${i.days} Gün</span><span class="price-tag">${new Intl.NumberFormat('tr-TR').format(i.price)} TG</span></div>
+                    ${mine ? '<button class="btn-action btn-own">SİZİN İLAN</button>' : `<button class="btn-action btn-buy" onclick="buy(${i.id}, ${i.price})">SATIN AL</button>`}
+                </div>`;
+            });
+        }
+
+        async function fetchInv() {
+            const res = await fetch(API + '/inventory/' + user.id);
+            const data = await res.json();
+            const el = document.getElementById('inv-grid');
+            el.innerHTML = '';
+            data.forEach(i => {
+                const img = i.img ? `/assets/items/${i.img}` : 'https://cdn-icons-png.flaticon.com/512/992/992693.png';
+                el.innerHTML += `
+                <div class="item-card">
+                    <span class="badge">${i.type.toUpperCase().replace('_',' ')}</span>
+                    <div class="item-visual"><img src="${img}" class="item-img-real" onerror="this.style.display='none'"></div>
+                    <div class="item-name">${i.name}</div>
+                    <div class="item-info-row"><span>${i.days} Gün</span><span>Kilitli</span></div>
+                    <button class="btn-action btn-sell" onclick="openSell('${i.name}', ${i.uid})">SATIŞA KOY</button>
+                </div>`;
+            });
+        }
+
+        async function fetchHistory() {
+            const res = await fetch(API + '/my-history/' + user.id);
+            const data = await res.json();
+            const el = document.getElementById('history-list');
+            el.innerHTML = '';
+            data.forEach(t => {
+                let isBuy = t.buyerId === user.id;
+                el.innerHTML += `<tr><td>${t.date}</td><td class="${isBuy?'type-buy':'type-sell'}">${isBuy?'ALIM':'SATIŞ'}</td><td>${t.item}</td><td style="color:#fff">${isBuy?'-':'+'} ${t.price} TG</td></tr>`;
+            });
+        }
+
+        async function fetchAdminData() {
+            if(user.role !== 'admin') return;
+            const rUsers = await fetch(API + '/admin/users');
+            const users = await rUsers.json();
+            const uEl = document.getElementById('admin-user-list');
+            uEl.innerHTML = '';
+            users.forEach(u => {
+                if(u.role === 'admin') return;
+                uEl.innerHTML += `<div class="admin-row"><span>${u.username} (${u.tg} TG)</span><button class="btn-ban" onclick="adminBan(${u.id})">BAN</button></div>`;
+            });
+            const rLogs = await fetch(API + '/admin/logs');
+            const logs = await rLogs.json();
+            const lEl = document.getElementById('admin-log-list');
+            lEl.innerHTML = '';
+            logs.forEach(l => lEl.innerHTML += `<div>[${l.date}] ${l.type}: ${l.item} (${l.price}TG)</div>`);
+        }
+
+        async function adminBan(id) {
+            if(!confirm('Silinsin mi?')) return;
+            await fetch(API + '/admin/ban', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({targetId:id}) });
+            fetchAdminData();
+        }
+
+        function openSell(n, id) { selId=id; document.getElementById('m-name').innerText=n; document.getElementById('sell-modal').style.display='flex'; document.getElementById('m-price').value=''; }
+        
+        async function submitSell() {
+            const p = document.getElementById('m-price').value;
+            if(!p) return toast('Fiyat Giriniz');
+            const res = await fetch(API + '/sell', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId:user.id, itemUid:selId, price:p})});
+            if((await res.json()).success) { document.getElementById('sell-modal').style.display='none'; toast('Satışa Eklendi'); fetchInv(); fetchMarket(); switchTab('market'); }
+        }
+
+        async function buy(id, p) {
+            if(user.tg < p) return toast('Yetersiz Bakiye');
+            toast('İşlem yapılıyor...');
+            const res = await fetch(API + '/buy', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({buyerId:user.id, listingId:id})});
+            if((await res.json()).success) { toast('Satın Alma Başarılı'); user.tg-=p; document.getElementById('d-tg').innerText=new Intl.NumberFormat('tr-TR').format(user.tg); fetchMarket(); fetchInv(); }
+        }
+
+        function toast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display='block'; setTimeout(()=>t.style.display='none', 2000); }
+    </script>
+</body>
+</html>
